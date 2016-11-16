@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<?php header('Access-Control-Allow-Origin: *'); ?>
+		<meta charset="utf-8">
+		<style>
+			body {
+				background-color: 0x000000;
+				margin: 0;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+				<video id="video" autoplay loop webkit-playsinline style="display:none">
+			<!--<source src="textures/sintel.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>-->
+			<!--<source src="textures/sintel.ogv" type='video/ogg; codecs="theora, vorbis"'>-->
+		</video>
+
+		<script src="three.js"></script>
+		<script src="TrackballControls.js"></script>
+		<script src="getRgb.js"></script>
+		<script src="lightEffects1.js"></script>
+		<script src="text.js"></script>
+		<script src="sphere.js"></script>
+	</body>
+</html>
