@@ -1,0 +1,28 @@
+@font-face{
+ font-family:"Organo";
+ src:url(../Organo.ttf);
+}
+@font-face{
+ font-family:"Chrome";
+ src:url(../Chrome-Black.ttf);
+}
+@font-face{
+ font-family:"Traffolight";
+ src:url(../Traffolight.otf);
+}
+@font-face{
+ font-family:"Schweiz";
+ src:url(../Schweiz.otf);
+}
+body {
+  font-family: 'Schweiz', Fallback, Chrome;
+  font-size: -webkit-xxx-large;
+  			background-color: 0x0000ff;
+			margin: 0;
+			overflow: hidden;
+}
+
+/* @font-face {
+    font-family: 'KulminoituvaRegular';
+    src: url('http://www.miketaylr.com/f/kulminoituva.ttf');
+} */

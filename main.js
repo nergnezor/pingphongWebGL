@@ -39,9 +39,9 @@ class Bulb {
 		this.group = new THREE.Object3D();//create an empty container
 		this.rgb = [0, 0, 0];
 		var g = new THREE.SphereBufferGeometry(BulbRadius, 32, 32)
-		var m = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.BackSide });
+		var m = new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.BackSide });
 		var s = new THREE.Mesh(g, m);
-		this.light = new THREE.PointLight(0x000000, 0.9, 0.3);
+		this.light = new THREE.PointLight(0x000000, 2, 0.3);
 		this.light.position.set(this.x, this.y, this.z);
 		s.position.set(this.x, this.y, this.z);
 		this.group.add(s);//add a mesh with geometry to it
@@ -83,7 +83,7 @@ function getLight() {
 
 function getSphere() {
 	geometry = new THREE.SphereGeometry(SphereRadius, 32, 32);
-	material = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: false, opacity: 0.5 });
+	material = new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: false, opacity: 0.5 });
 	sphere = new THREE.Mesh(geometry, material);
 	scene.add(sphere);
 	var middle = new THREE.Mesh(new THREE.CylinderGeometry(SphereRadius + .01, SphereRadius + .01, 0.02, 32), material);
@@ -94,12 +94,6 @@ function getSphere() {
 	hole.rotateZ(.2);
 	hole.position.y = 0.01;
 	scene.add(hole);
-
-	var textBox = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 0.01), material);
-	textBox.position.x = 0;
-	textBox.position.y = 0;
-	textBox.position.z = 1;
-	// 	scene.add(textBox);
 }
 
 function getBulbs() {
@@ -110,7 +104,7 @@ function getBulbs() {
 		var r = Math.sqrt(1 - Math.pow(y, 2))
 		var phi = (i % NBulbs) * increment;
 		var bulb = new Bulb(y, r, phi);
-		// console.log('phi: ' + ((phi/60)-1) + ', y: ' + y + ', r: ' + r);
+		// 		console.log('phi: ' + (phi/(2* Math.PI)) + ', real phi: ' + phi + ', r: ' + r+ ', y: ' + y);
 		bulbs[ledIndexes[i]] = bulb
 		scene.add(bulb.model);
 	}
@@ -120,13 +114,13 @@ function getBulbs() {
 var text;
 function init() {
 	renderer = new THREE.WebGLRenderer({ antialias: true });
-	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setSize(window.innerWidth, Math.min(window.innerHeight, window.innerWidth));
 	document.body.appendChild(renderer.domElement);
 
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color(0x303030);
 
-	camera = new THREE.PerspectiveCamera(15, window.innerWidth / window.innerHeight, 8, 12);
+	camera = new THREE.PerspectiveCamera(15, window.innerWidth / (Math.min(window.innerHeight, window.innerWidth)), 8, 12);
 	camera.position.z = 10;
 	// 	camera.position.set(9.206370863377273, -2.3027256020920936, -3.1528067380391285);
 	// 	camera.up = new THREE.Vector3(-1, 0, 0);
@@ -140,7 +134,7 @@ function init() {
 	getBulbs();
 
 	controls = new THREE.TrackballControls(camera);
-	text = textToPixels('jazze');
+	text = textToPixels('rio');
 }
 
 var connected = false;
@@ -163,8 +157,8 @@ request.onload = function () {
 		// connected = false;
 	}
 }
-var frequency = 50;
-var nPackets = 1;
+var frequency = 60;
+var nPackets = 8;
 function setLeds() {
 	if (connected && nPacketsWaiting > 0) {
 		packetRejected = true;
@@ -188,6 +182,7 @@ function setLeds() {
 	var counter = 0;
 	for (let n = 0; n < nPackets; ++n) {
 		sweep(1);
+// 		sweepCanvas()
 		if (!connected) {
 			return;
 		}
@@ -217,6 +212,7 @@ var dir = new THREE.Vector3();
 
 
 var running = false;
+var refreshIntervalId;
 function onDocumentMouseUp(event) {
 	event.preventDefault();
 
@@ -229,39 +225,48 @@ function onDocumentMouseUp(event) {
 	if (event.button == 2) {
 		running = !running;
 		if (running) {
-			setInterval(function () {
+			refreshIntervalId = setInterval(function () {
 				// lightNextBulb();
 				setLeds();
 				// sweep(1);
 			}, (nPackets * 1000) / frequency);
 		}
+		else {
+			clearInterval(refreshIntervalId);
+		}
 	}
 	if (event.button == 0) {
 		setLeds();
-		for (let row = 0; row < textHeight; ++row) {
-			let test = ''
-			for (let col = 0; col < textWidth; ++col) {
-				let found = false
-				for (let i = 0; i < addedPixels.length; ++i) {
-					if (addedPixels[i][0] == row && addedPixels[i][1] == col) {
-						test += 'X';
-						found = true;
-						break;
+		if (text != null) {
+			for (let row = 0; row < textHeight; ++row) {
+				let test = ''
+				for (let col = 0; col < textWidth; ++col) {
+					let found = false
+					for (let i = 0; i < addedPixels.length; ++i) {
+						if (addedPixels[i][0] == row && addedPixels[i][1] == col) {
+							// test += '(' + Math.round(10 * addedPixels[i][2]) + ')';
+							test += Math.round(10 * addedPixels[i][2])
+							found = true;
+							break;
+						}
 					}
+					if (found) {
+						continue;
+					}
+
+					if (text[row][col] != 0) {
+						// test += text[row][col] >> 5;
+						test += '.';
+					}
+					else {
+						test += ' ';
+					}
+
 				}
-				if (found) {
-					continue;
-				}
-				if (text[row][col] != 0) {
-					test += text[row][col] >> 5;
-				}
-				else {
-					test += ' ';
-				}
+				console.log(test)
 			}
-			console.log(test)
+			console.log(' ')
 		}
-		console.log(' ')
 	}
 }
 init();
